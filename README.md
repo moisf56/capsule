@@ -79,6 +79,13 @@ LangGraph-powered agent answers natural-language questions about the patient rec
 
 ![Architecture](docs/assets/architecture.png)
 
+### Knowledge Graph (Neo4j)
+
+| Drug-Drug Interactions | ICD-10 Hierarchy |
+|:----------------------:|:----------------:|
+| ![DDI Graph](docs/assets/graph-inter.png) | ![ICD-10 Graph](docs/assets/ICDPic.png) |
+| 222,271 interaction edges across 1,868 drugs | 98,186 codes with IS_CHILD_OF hierarchy |
+
 ---
 
 ## 📊 Models
