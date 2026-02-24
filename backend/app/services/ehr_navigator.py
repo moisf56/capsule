@@ -473,7 +473,7 @@ def synthesize_answer(state: dict) -> dict:
     logger.info(f"Step 5: Synthesizing answer from {len(facts)} fact groups")
 
     joined_facts = "\n\n".join(facts)
-    llm = _get_llm(temperature=0.1, max_tokens=2048)
+    llm = _get_llm(temperature=0.1, max_tokens=512)
 
     # The extracted facts ARE the reasoning — show the agent's intermediate work
     reasoning = joined_facts

@@ -49,7 +49,7 @@ Unlike cloud-based AI scribes, Capsule enforces a strict **privacy boundary**: P
 
 > _3-minute walkthrough: dictation → SOAP note → drug interaction alert → FHIR export_
 
-[![Demo Video](docs/assets/demo-thumbnail.png)](https://youtube.com/TODO)
+[![Demo Video](https://img.youtube.com/vi/M0y6EaYk8pI/maxresdefault.jpg)](https://www.youtube.com/watch?v=M0y6EaYk8pI)
 
 **Demo scenario**: 58-year-old male, chest pain, taking Aspirin + Ibuprofen + Metformin → system detects GI bleeding risk, suggests ICD-10 codes, flags abnormal labs, exports full FHIR R4 bundle.
 
