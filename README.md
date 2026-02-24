@@ -10,6 +10,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![Neo4j](https://img.shields.io/badge/Neo4j-5.x-008CC1?style=flat-square&logo=neo4j&logoColor=white)
 ![FHIR](https://img.shields.io/badge/FHIR-R4-E74C3C?style=flat-square)
+![No GPU Required](https://img.shields.io/badge/No_GPU-Required-success?style=flat-square&logo=intel&logoColor=white)
 
 **MedGemma Impact Challenge — Edge AI Prize Submission**
 
@@ -92,7 +93,7 @@ LangGraph-powered agent answers natural-language questions about the patient rec
                    │  de-identified terms only
                    │  (drug names · diagnosis strings)
 ┌──────────────────▼──────────────────────────────────┐
-│              WORKSTATION  (Local GPU)               │
+│           DOCTOR'S LAPTOP  (CPU only)               │
 │                                                     │
 │  MCP Server (FastAPI :8082)                        │
 │  ├─ Neo4j Knowledge Graph (:7687)                  │
@@ -100,7 +101,7 @@ LangGraph-powered agent answers natural-language questions about the patient rec
 │  │   ├─ 222,271 DDI edges                          │
 │  │   └─ 98,186 ICD-10 codes                        │
 │  ├─ HAPI FHIR R4 (:8080)                          │
-│  └─ MedGemma llama-server (:8081)                  │
+│  └─ MedGemma llama-server (:8081)  ← CPU, Q4_K_M  │
 │      └─ Enhancement · Radiology · EHR Navigator    │
 └─────────────────────────────────────────────────────┘
 ```
@@ -109,13 +110,13 @@ LangGraph-powered agent answers natural-language questions about the patient rec
 
 ## 📊 Models
 
-| Model | On-Device Size | Quantization | Task |
-|-------|---------------|-------------|------|
-| MedGemma 4B | 2.0 GB | GGUF Q3_K_M | SOAP generation (phone) |
-| MedGemma 4B + mmproj | 3.2 GB | GGUF Q4_K_M | Enhancement + Radiology (workstation GPU) |
-| MedASR | 101 MB | ONNX INT8 | Medical speech recognition (phone) |
+| Model | Size | Quantization | Runs on | Task |
+|-------|------|-------------|---------|------|
+| MedGemma 4B | 2.0 GB | GGUF Q3_K_M | Phone (on-device) | SOAP note generation · Lab results summary |
+| MedGemma 4B + mmproj | 2.4 GB | GGUF Q4_K_M | Laptop CPU | Enhancement · Radiology · EHR Navigation |
+| MedASR | 101 MB | ONNX INT8 | Phone (on-device) | Medical speech recognition |
 
-**Total on-device footprint: 2.1 GB** — fits comfortably on any modern Android or iOS device.
+**No GPU required anywhere.** The laptop runs MedGemma Q4_K_M on CPU via llama.cpp — a standard doctor's laptop is sufficient.
 
 ---
 
@@ -149,7 +150,7 @@ capsule/
 │
 └── workstation/
     ├── docker-compose.yml        # Neo4j + HAPI FHIR
-    └── start_vision.sh           # MedGemma llama-server (GPU)
+    └── start_vision.sh           # MedGemma llama-server (CPU)
 ```
 
 ---
@@ -158,7 +159,7 @@ capsule/
 
 ### Prerequisites
 - Android (6 GB RAM+) or iOS device
-- NVIDIA GPU workstation (8 GB VRAM+)
+- Doctor's laptop (any modern CPU, 8 GB RAM+)
 - Docker, Node.js 18+, Python 3.11+
 - [MedGemma model access](https://huggingface.co/google/medgemma-1.5-4b-it) on HuggingFace
 
@@ -179,7 +180,7 @@ pip install -r backend/requirements.txt
 # ml-models/gguf/medgemma-1.5-4b-it-Q4_K_M.gguf   (workstation)
 # ml-models/gguf/medgemma-1.5-4b-it-mmproj.gguf    (vision)
 
-# Launch MedGemma GPU server + MCP API
+# Launch MedGemma CPU server + MCP API
 bash workstation/start_vision.sh
 python -m uvicorn backend.mcp_server:app --host 0.0.0.0 --port 8082
 ```

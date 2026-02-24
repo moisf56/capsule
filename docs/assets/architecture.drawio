@@ -1,0 +1,159 @@
+<mxfile host="65bd71144e">
+    <diagram id="mKwUyqKfvvAoeNG7bEYG" name="Page-1">
+        <mxGraphModel dx="2701" dy="681" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1000" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="phone_bg" value="" style="rounded=1;fillColor=#1a3a5c;strokeColor=#4285F4;strokeWidth=2;arcSize=4;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="120" width="320" height="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="phone_title" value="📱  Mobile Device" style="text;html=0;strokeColor=none;fillColor=none;align=center;fontSize=15;fontStyle=1;fontColor=#4285F4;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="134" width="320" height="26" as="geometry"/>
+                </mxCell>
+                <mxCell id="phone_lock" value="🔒  All PHI stays here. Always." style="text;html=0;strokeColor=none;fillColor=none;align=center;fontSize=10;fontColor=#88aacc;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="160" width="320" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="mic" value="🎙️  Microphone" style="rounded=1;fillColor=#0d2137;strokeColor=#4285F4;strokeWidth=1.5;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="140" y="190" width="160" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="asr" value="MedASR  (ONNX INT8 · 101 MB)" style="rounded=1;fillColor=#0d2137;strokeColor=#34A853;strokeWidth=1.5;fontColor=#ffffff;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="272" width="240" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="transcript" value="📄  Transcript" style="rounded=1;fillColor=#152a3a;strokeColor=#4285F4;strokeWidth=1;fontColor=#ccddee;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="155" y="354" width="130" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="gemma_phone" value="MedGemma 4B  (GGUF Q3_K_M · 2 GB)" style="rounded=1;fillColor=#0d2137;strokeColor=#FBBC04;strokeWidth=1.5;fontColor=#ffffff;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="432" width="260" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="soap" value="📋  SOAP Note + Lab Summary" style="rounded=1;fillColor=#152a3a;strokeColor=#4285F4;strokeWidth=1;fontColor=#ccddee;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="105" y="514" width="230" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="checkpoint" value="✅  Human Checkpoint" style="rounded=1;fillColor=#1a4a2a;strokeColor=#34A853;strokeWidth=2;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="130" y="594" width="180" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="fhir_exp" value="⬆  FHIR Export" style="rounded=1;fillColor=#0d2a1a;strokeColor=#34A853;strokeWidth=1.5;fontColor=#34A853;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="700" width="130" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="fhir_exp_s" value="SOAP · Radiology · Conditions · Medications" style="text;html=0;strokeColor=none;fillColor=none;align=center;fontSize=8;fontColor=#88aacc;" parent="1" vertex="1">
+                    <mxGeometry x="-3" y="742" width="320" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="fhir_imp" value="⬇  FHIR Import" style="rounded=1;fillColor=#2a0d0d;strokeColor=#EA4335;strokeWidth=1.5;fontColor=#EA4335;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="230" y="700" width="130" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="fhir_imp_s" value="Lab results · Patient history · Radiology images" style="text;html=0;strokeColor=none;fillColor=none;align=center;fontSize=8;fontColor=#88aacc;" parent="1" vertex="1">
+                    <mxGeometry x="3" y="756" width="320" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="a1" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#4285F4;strokeWidth=1.5;" parent="1" source="mic" target="asr" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a2" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#4285F4;strokeWidth=1.5;" parent="1" source="asr" target="transcript" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a3" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#4285F4;strokeWidth=1.5;" parent="1" source="transcript" target="gemma_phone" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a4" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#FBBC04;strokeWidth=1.5;" parent="1" source="gemma_phone" target="soap" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a5" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#34A853;strokeWidth=1.5;" parent="1" source="soap" target="checkpoint" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a6" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#34A853;strokeWidth=1.5;exitX=0.3;exitY=1;entryX=0.5;entryY=0;" parent="1" source="checkpoint" target="fhir_exp" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a7" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#EA4335;strokeWidth=1.5;exitX=0.5;exitY=0;entryX=0.7;entryY=1;" parent="1" source="fhir_imp" target="checkpoint" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="laptop_bg" value="" style="rounded=1;fillColor=#2a1a3a;strokeColor=#9B59B6;strokeWidth=2;arcSize=4;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="120" width="330" height="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="laptop_title" value="💻  Doctor&#39;s Laptop  (CPU only)" style="text;html=0;strokeColor=none;fillColor=none;align=center;fontSize=15;fontStyle=1;fontColor=#9B59B6;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="134" width="330" height="26" as="geometry"/>
+                </mxCell>
+                <mxCell id="laptop_sub" value="No GPU required" style="text;html=0;strokeColor=none;fillColor=none;align=center;fontSize=10;fontColor=#aa88cc;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="160" width="330" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="mcp" value="MCP Server  (FastAPI :8082)" style="rounded=1;fillColor=#1a0a2a;strokeColor=#9B59B6;strokeWidth=2;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="690" y="190" width="190" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="mcp_s" value="25+ clinical tool endpoints" style="text;html=0;strokeColor=none;fillColor=none;align=center;fontSize=9;fontColor=#aa88cc;" parent="1" vertex="1">
+                    <mxGeometry x="630" y="230" width="310" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="neo4j" value="Neo4j Knowledge Graph" style="rounded=1;fillColor=#1a0a2a;strokeColor=#E74C3C;strokeWidth=1.5;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="665" y="300" width="240" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="neo4j_s" value="1,868 drugs  ·  222,271 DDI edges  ·  98,186 ICD-10 codes" style="text;html=0;strokeColor=none;fillColor=none;align=center;fontSize=8;fontColor=#aa88cc;" parent="1" vertex="1">
+                    <mxGeometry x="625" y="340" width="320" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="gemma_laptop" value="MedGemma llama-server (:8081)" style="rounded=1;fillColor=#1a0a2a;strokeColor=#FBBC04;strokeWidth=1.5;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="650" y="430" width="270" height="38" as="geometry"/>
+                </mxCell>
+                <mxCell id="gemma_l_s" value="Q4_K_M  ·  Enhancement  ·  Radiology  ·  EHR Navigator" style="text;html=0;strokeColor=none;fillColor=none;align=center;fontSize=8;fontColor=#aa88cc;" parent="1" vertex="1">
+                    <mxGeometry x="625" y="470" width="320" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="fhir" value="HAPI FHIR R4  (:8080)" style="rounded=1;fillColor=#1a0a2a;strokeColor=#34A853;strokeWidth=1.5;fontColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="668" y="566" width="240" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="fhir_s1" value="⬆ Stores: SOAP · Radiology reports · Conditions · Medications · DDI alerts" style="text;html=0;strokeColor=none;fillColor=none;align=left;fontSize=8;fontColor=#88aacc;" parent="1" vertex="1">
+                    <mxGeometry x="625" y="736" width="315" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="fhir_s2" value="⬇ Provides: Lab results · Patient history · Radiology images" style="text;html=0;strokeColor=none;fillColor=none;align=left;fontSize=8;fontColor=#88aacc;" parent="1" vertex="1">
+                    <mxGeometry x="625" y="752" width="315" height="14" as="geometry"/>
+                </mxCell>
+                <mxCell id="b1" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#9B59B6;strokeWidth=1.5;" parent="1" source="mcp" target="neo4j" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="b2" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#9B59B6;strokeWidth=1.5;" parent="1" source="neo4j" target="gemma_laptop" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#9B59B6;strokeWidth=1.5;" parent="1" source="gemma_laptop" target="fhir" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="780" y="584"/>
+                            <mxPoint x="775" y="584"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="enh_out" value="de-identified terms  (drug names · diagnoses)" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#EA4335;strokeWidth=2;dashed=1;dashPattern=8 4;fontColor=#EA4335;fontSize=9;fontStyle=1;entryX=0;entryY=0.25;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="gemma_phone" target="mcp" edge="1">
+                    <mxGeometry x="0.3204" y="14" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="388" y="451"/>
+                            <mxPoint x="388" y="199"/>
+                        </Array>
+                        <mxPoint x="357" y="421" as="sourcePoint"/>
+                        <mxPoint x="565" y="153.06" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="enh_in" value="DDI alerts · ICD codes · clinical summary" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#34A853;strokeWidth=2;dashed=1;dashPattern=8 4;fontColor=#34A853;fontSize=9;fontStyle=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="511" y="213"/>
+                            <mxPoint x="511" y="625"/>
+                        </Array>
+                        <mxPoint x="687" y="213" as="sourcePoint"/>
+                        <mxPoint x="293" y="625" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="fhir_out_arrow" value="export →" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#34A853;strokeWidth=2;fontColor=#34A853;fontSize=9;fontStyle=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" parent="1" source="fhir_exp" target="fhir" edge="1">
+                    <mxGeometry x="0.3235" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="210" y="686"/>
+                            <mxPoint x="655" y="686"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="fhir_in_arrow" value="← import" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#EA4335;strokeWidth=2;fontColor=#EA4335;fontSize=9;fontStyle=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="fhir" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="650" y="717.8" as="sourcePoint"/>
+                        <mxPoint x="355" y="711" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="668" y="711"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
