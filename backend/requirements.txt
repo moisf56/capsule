@@ -1,0 +1,34 @@
+# MedGemma Clinical Assistant - Backend Dependencies
+
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-dotenv==1.0.0
+pydantic==2.5.3
+
+# Database
+sqlalchemy[asyncio]==2.0.25
+neo4j==5.17.0
+
+# LangGraph & LangChain (Agentic AI)
+langgraph>=0.2.31
+langchain-core>=0.3.0
+# No cloud LLM needed - MedGemma runs locally
+
+# ML & Model Inference
+torch>=2.2.0
+transformers>=4.37.2
+bitsandbytes>=0.42.0
+
+# Medical NLP
+spacy>=3.7.2
+
+# FHIR
+fhir.resources>=7.1.0
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+
+# Utilities
+httpx>=0.26.0

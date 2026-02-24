@@ -1,0 +1,1 @@
+# MedGemma Clinical Assistant Backend

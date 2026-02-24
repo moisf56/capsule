@@ -1,0 +1,47 @@
+# Secrets
+.env
+*.env
+keys/
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+medgemma-env/
+
+# Node / React Native
+node_modules/
+.expo/
+*.log
+
+# Android / iOS build artifacts
+mobile/MedGemmaApp/android/
+mobile/MedGemmaApp/ios/
+mobile/MedGemmaApp/.bundle/
+
+# ML models (too large for git)
+ml-models/
+*.gguf
+*.onnx
+*.bin
+*.safetensors
+
+# Data files
+data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Claude Code
+.claude/
+CLAUDE.md
