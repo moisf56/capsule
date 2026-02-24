@@ -20,11 +20,24 @@
 
 ---
 
+## 🏗️ Architecture
+
+![Architecture](docs/assets/architecture.png)
+
+### Knowledge Graph (Neo4j)
+
+| Drug-Drug Interactions | ICD-10 Hierarchy |
+|:----------------------:|:----------------:|
+| ![DDI Graph](docs/assets/graph-inter.png) | ![ICD-10 Graph](docs/assets/ICDPic.png) |
+| 222,271 interaction edges across 1,868 drugs (Mendeley DDI dataset / DrugBank) | 98,186 codes with IS_CHILD_OF hierarchy (CMS icd10cm_order_2026) |
+
+---
+
 ## 🎯 Overview
 
 Capsule turns a **30-second voice dictation** into a complete, safety-reviewed clinical note — running MedGemma and MedASR **entirely on the doctor's devices**, with no patient data ever leaving the clinic.
 
-Doctors spend 2+ hours daily on documentation. Capsule cuts that to minutes while **autonomously detecting drug interactions, suggesting billing codes, and correlating lab results** — all with mandatory physician review before any data is committed.
+Doctors spend 4.5 hours daily on documentation (Medical Economics, 2025). Capsule cuts that to minutes while **autonomously detecting drug interactions, suggesting billing codes, and correlating lab results** — all with mandatory physician review before any data is committed.
 
 ### Key Innovation
 
@@ -45,7 +58,7 @@ Unlike cloud-based AI scribes, Capsule enforces a strict **privacy boundary**: P
 ## ✨ Features
 
 ### 🎙️ On-Device Medical Transcription
-MedASR (101 MB, INT8 quantized) runs entirely on the phone. Optimized with sparse mel filter computation and async processing for real-time feedback during dictation.
+MedASR (105M Conformer CTC, quantized from 402 MB to 101 MB via INT8 ONNX) runs entirely on the phone. Full on-device audio pipeline: 16 kHz mono resampling, mel spectrogram computation (512 FFT, 128 mel bins, sparse filter optimization), CTC greedy decoding over 512-token SentencePiece vocabulary, and medical formatting (punctuation tokens, section headers). No cloud dependency.
 
 ### 🧠 On-Device SOAP Note Generation
 MedGemma 4B (GGUF Q3_K_M, 2.0 GB) generates structured clinical notes from transcripts in under 3 seconds. Runs via `llama.rn` — no internet required, no PHI transmitted.
@@ -65,26 +78,13 @@ Three mandatory review gates before any data is exported:
 - **Safety review** — every DDI alert and ICD code requires explicit action
 
 ### 🏥 FHIR R4 Export
-Full clinical export in a single tap: Encounter, DocumentReference, MedicationRequests, Conditions (with SNOMED crosswalk), DetectedIssues, and Observations — Epic/Cerner compatible.
+Full clinical export in a single tap — 7 resource types: Encounter, DocumentReference (SOAP note), MedicationRequest (RxNorm-coded), Condition (ICD-10 + SNOMED CT dual-coded), DetectedIssue (DDI alerts), Observation (LOINC-coded labs), and DiagnosticReport (radiology). Epic/Cerner compatible.
 
 ### 🔬 Radiology AI
-MedGemma's vision encoder analyzes chest X-rays and other images. Reports saved as FHIR DiagnosticReports with structured findings.
+MedGemma's vision encoder analyzes 8 imaging modalities (chest X-ray, MRI, CT, dermatology, pathology, fundoscopy, ECG, general imaging) with specialized radiology prompts producing FINDINGS + IMPRESSION reports. Gives doctors preliminary radiology reads when radiologists are unavailable — common in rural clinics, after-hours shifts, and emerging-market hospitals. Reports saved as FHIR DiagnosticReports.
 
 ### 🗺️ EHR Navigator Agent
 LangGraph-powered agent answers natural-language questions about the patient record: _"What were the last 3 HbA1c values?"_ — executes a 5-step reasoning pipeline against the FHIR database.
-
----
-
-## 🏗️ Architecture
-
-![Architecture](docs/assets/architecture.png)
-
-### Knowledge Graph (Neo4j)
-
-| Drug-Drug Interactions | ICD-10 Hierarchy |
-|:----------------------:|:----------------:|
-| ![DDI Graph](docs/assets/graph-inter.png) | ![ICD-10 Graph](docs/assets/ICDPic.png) |
-| 222,271 interaction edges across 1,868 drugs | 98,186 codes with IS_CHILD_OF hierarchy |
 
 ---
 
@@ -96,7 +96,7 @@ LangGraph-powered agent answers natural-language questions about the patient rec
 | MedGemma 4B + mmproj | 2.4 GB | GGUF Q4_K_M | Laptop CPU | Enhancement · Radiology · EHR Navigation |
 | MedASR | 101 MB | ONNX INT8 | Phone (on-device) | Medical speech recognition |
 
-**No GPU required anywhere.** The laptop runs MedGemma Q4_K_M on CPU via llama.cpp — a standard doctor's laptop is sufficient.
+**No GPU required anywhere.** Tested on Ryzen 7 8845HS (32GB RAM) running MedGemma Q4_K_M on CPU via llama.cpp — a standard doctor's laptop is sufficient.
 
 ---
 

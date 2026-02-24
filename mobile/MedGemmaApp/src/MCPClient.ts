@@ -11,7 +11,7 @@
 
 // Server URLs — updated at runtime via setMcpBase()
 export const DEMO_SERVER_URL = 'https://capsule-med-demo.hf.space'; // HuggingFace Space (placeholder)
-export const DEFAULT_LOCAL_URL = 'http://10.193.155.119:8082';
+export const DEFAULT_LOCAL_URL = 'http://192.168.1.149:8082';
 
 let MCP_BASE = DEFAULT_LOCAL_URL;
 

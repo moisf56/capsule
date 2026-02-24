@@ -295,6 +295,7 @@ export default function App() {
   const [soapNote, setSoapNote] = useState('');
   const [generating, setGenerating] = useState(false);
   const [streamingText, setStreamingText] = useState('');
+  const [soapGenTime, setSoapGenTime] = useState<number | null>(null);
 
   // DDI Alerts
   const [ddiResult, setDdiResult] = useState<DDIResult | null>(null);
@@ -617,8 +618,10 @@ export default function App() {
     }
     setGenerating(true);
     setStreamingText('');
+    setSoapGenTime(null);
     setLoading(true);
     setLoadingStatus('Switching to MedGemma...');
+    const genStart = Date.now();
     try {
       unloadMedASR();
       let ctx = llamaContext;
@@ -654,6 +657,7 @@ SOAP:`;
       );
       let finalText = stripThinkingTrace(fullText);  // Clean only at end
       setSoapNote(finalText.trim());
+      setSoapGenTime(Math.round((Date.now() - genStart) / 1000));
       setGenerating(false);
       setStreamingText('');
       setLoading(false);
@@ -1273,7 +1277,7 @@ SOAP:`;
         <StepIndicator currentStep={SCREEN_TO_STEP.soap} />
 
         <ScrollView style={styles.scrollContent}>
-          <Text style={styles.sectionLabel}>GENERATED NOTE</Text>
+          <Text style={styles.sectionLabel}>GENERATED NOTE{soapGenTime !== null ? `  (${soapGenTime}s)` : ''}</Text>
           <TextInput
             style={styles.soapInput}
             value={soapNote}
@@ -2371,7 +2375,7 @@ SOAP:`;
         </ScrollView>
 
         {labResults.length > 0 && (
-          <View style={styles.bottomBar}>
+          <View style={[styles.bottomBar, {flexDirection: 'row'}]}>
             <TouchableOpacity
               style={[styles.primaryButton, {flex: 1, marginRight: 6}]}
               onPress={async () => {
