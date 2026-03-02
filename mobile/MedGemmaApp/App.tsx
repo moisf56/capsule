@@ -270,6 +270,65 @@ function stripThinkingTrace(text: string): string {
   return cleaned.trim();
 }
 
+// ─── Simple Markdown Renderer (bold, headers, bullets) ───
+function renderMarkdown(text: string | null | undefined, baseStyle?: any): React.ReactElement {
+  if (!text) return <Text style={baseStyle}>{''}</Text>;
+  const lines = String(text).split('\n');
+  const elements: React.ReactElement[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    // Strip markdown headers (##, ###) → bold text
+    const headerMatch = line.match(/^#{1,4}\s+(.+)/);
+    if (headerMatch) {
+      line = headerMatch[1];
+      elements.push(
+        <Text key={i} style={[baseStyle, {fontWeight: '700', fontSize: 15, marginTop: i > 0 ? 8 : 0}]}>
+          {parseBold(line, baseStyle)}{'\n'}
+        </Text>
+      );
+      continue;
+    }
+    // Bullet lines
+    const bulletMatch = line.match(/^[-*]\s+(.+)/);
+    if (bulletMatch) {
+      elements.push(
+        <Text key={i} style={baseStyle}>
+          {'  \u2022 '}{parseBold(bulletMatch[1], baseStyle)}{'\n'}
+        </Text>
+      );
+      continue;
+    }
+    // Regular line
+    elements.push(
+      <Text key={i} style={baseStyle}>
+        {parseBold(line, baseStyle)}{'\n'}
+      </Text>
+    );
+  }
+  return <Text>{elements}</Text>;
+}
+
+function parseBold(text: string | null | undefined, baseStyle?: any): React.ReactNode[] {
+  if (!text) return [''];
+  const parts: React.ReactNode[] = [];
+  const regex = /\*\*(.+?)\*\*/g;
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(
+      <Text key={match.index} style={[baseStyle, {fontWeight: '700'}]}>{match[1]}</Text>
+    );
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  return parts.length > 0 ? parts : [text];
+}
+
 // ─── Main App ────────────────────────────────────────────
 
 export default function App() {
@@ -630,20 +689,18 @@ export default function App() {
         if (!ctx) { setGenerating(false); setLoading(false); return; }
       }
       setLoadingStatus('Generating SOAP note...');
-      const soapPrompt = `Generate SOAP note from transcript:
+      const soapPrompt = `Generate SOAP note grounded in transcription:
 
-${transcript}
-
-SOAP:`;
+${transcript}`;
 
       let fullText = '';
       await ctx.completion(
         {
           messages: [
-            {role: 'system', content: 'Medical scribe. Output SOAP format only. No thinking traces.'},
+            {role: 'system', content: 'Medical Scribe: Output SOAP format for doctors. No thinking traces.'},
             {role: 'user', content: soapPrompt},
           ],
-          n_predict: 450,         // SOAP notes rarely exceed 350 tokens
+          n_predict: 330,
           stop: STOP_WORDS,
           temperature: 0.3,
           top_k: 40,
@@ -720,8 +777,9 @@ SOAP:`;
           content: result.answer + meta,
           reasoning: result.reasoning || undefined,
         }]);
-      } catch (err: any) {
-        setChatMessages(prev => [...prev, {role: 'assistant', content: `EHR Navigator error: ${err.message}\n\nMake sure llama-server is running on workstation.`}]);
+      } catch (e: any) {
+        const msg = e?.message || String(e) || 'Unknown error';
+        setChatMessages(prev => [...prev, {role: 'assistant', content: `EHR Navigator error: ${msg}\n\nMake sure llama-server is running on workstation.`}]);
       } finally {
         setEhrNavigating(false);
         setStreamingReasoning('');
@@ -886,12 +944,11 @@ SOAP:`;
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor={C.bg.base} />
         {/* Header */}
-        <View style={[styles.soapHeader, {paddingHorizontal: 16}]}>
-          <TouchableOpacity onPress={() => setScreen('home')} style={styles.backBtn}>
-            <Text style={styles.backBtnText}>← Back</Text>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => setScreen('home')}>
+            <Text style={styles.backButton}>{'\u2039'} Back</Text>
           </TouchableOpacity>
-          <Text style={styles.soapTitle}>Server Settings</Text>
-          <View style={{width: 60}} />
+          <Text style={styles.headerTitle}>Server Settings</Text>
         </View>
 
         <ScrollView contentContainerStyle={{padding: 20, gap: 20}}>
@@ -1035,6 +1092,11 @@ SOAP:`;
         // Pre-load MedASR in background while user prepares to record
         if (!medasrSession) {
           loadMedASR().then(() => console.log('MedASR pre-loaded'));
+        }
+        // Pre-load MedGemma early so SOAP generation is instant
+        if (!llamaContext) {
+          console.log('Pre-loading MedGemma from recording screen...');
+          loadMedGemma(true).then(() => console.log('MedGemma pre-loaded from recording'));
         }
       }},
       {icon: '\uD83D\uDD2C', title: 'Lab Results', desc: 'View & analyze labs', bg: C.iconBg.amber, onPress: () => {
@@ -1222,7 +1284,7 @@ SOAP:`;
             <Text style={styles.backButton}>{'\u2039'} Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Review Transcript</Text>
-          <Text style={styles.headerSubtitle}>Step 1 of 4 \u2014 Edit if needed</Text>
+          <Text style={styles.headerSubtitle}>Step 1 of 4 {'\u2014'} Edit if needed</Text>
         </View>
         <StepIndicator currentStep={SCREEN_TO_STEP.transcript} />
 
@@ -1272,7 +1334,7 @@ SOAP:`;
             <Text style={styles.backButton}>{'\u2039'} Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>SOAP Note</Text>
-          <Text style={styles.headerSubtitle}>Step 2 of 4 \u2014 Review and approve</Text>
+          <Text style={styles.headerSubtitle}>Step 2 of 4 {'\u2014'} Review and approve</Text>
         </View>
         <StepIndicator currentStep={SCREEN_TO_STEP.soap} />
 
@@ -1406,7 +1468,7 @@ SOAP:`;
             <Text style={styles.backButton}>{'\u2039'} Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Safety Review</Text>
-          <Text style={styles.headerSubtitle}>Step 3 of 4 \u2014 Review AI findings before export</Text>
+          <Text style={styles.headerSubtitle}>Step 3 of 4 {'\u2014'} Review AI findings before export</Text>
         </View>
         <StepIndicator currentStep={SCREEN_TO_STEP.alerts} />
 
@@ -1470,9 +1532,7 @@ SOAP:`;
             <>
               <Text style={styles.sectionLabel}>AI CLINICAL SUMMARY</Text>
               <View style={[styles.card, {borderLeftWidth: 4, borderLeftColor: C.primary.default}]}>
-                <Text style={{fontSize: 14, color: C.text.primary, lineHeight: 20}}>
-                  {enhanceResult.clinical_summary}
-                </Text>
+                {renderMarkdown(enhanceResult.clinical_summary, {fontSize: 14, color: C.text.primary, lineHeight: 20})}
                 <View style={{flexDirection: 'row', flexWrap: 'wrap', marginTop: 10, gap: 6}}>
                   {enhanceResult.tools_called.map(tool => (
                     <View key={tool} style={{backgroundColor: C.primary.default + '20', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10}}>
@@ -1870,14 +1930,16 @@ SOAP:`;
                 </View>
               ))}
 
-              <TouchableOpacity
-                style={[styles.primaryButton, {backgroundColor: C.accent.default, marginTop: 16}]}
-                onPress={() => setScreen('radiology_detail')}>
-                <Text style={styles.primaryButtonText}>New Scan Analysis</Text>
-              </TouchableOpacity>
             </>
           )}
         </ScrollView>
+        <View style={styles.bottomBar}>
+          <TouchableOpacity
+            style={[styles.primaryButton, {backgroundColor: C.accent.default}]}
+            onPress={() => setScreen('radiology_detail')}>
+            <Text style={styles.primaryButtonText}>New Scan Analysis</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
@@ -2081,12 +2143,12 @@ SOAP:`;
             <>
               <Text style={styles.sectionLabel}>FINDINGS</Text>
               <View style={styles.card}>
-                <Text style={styles.reportText}>{analysisResult.findings}</Text>
+                {renderMarkdown(analysisResult.findings, styles.reportText)}
               </View>
 
               <Text style={[styles.sectionLabel, {marginTop: 20}]}>IMPRESSION</Text>
               <View style={[styles.card, {borderLeftWidth: 3, borderLeftColor: C.accent.default}]}>
-                <Text style={[styles.reportText, {color: C.accent.default}]}>{analysisResult.impression}</Text>
+                {renderMarkdown(analysisResult.impression, [styles.reportText, {color: C.accent.default}])}
               </View>
 
               <View style={styles.disclaimerCard}>
@@ -2236,14 +2298,14 @@ SOAP:`;
             </View>
           ) : (
             patients.map(pt => (
-              <View key={pt.id} style={styles.patientRow}>
-                <View style={styles.patientInfo}>
+              <View key={pt.id} style={[styles.patientRow, {flexDirection: 'column', alignItems: 'stretch'}]}>
+                <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 10}}>
                   <Text style={styles.patientName}>{maskName(pt.name)}</Text>
-                  <Text style={styles.patientMeta}>
+                  <Text style={[styles.patientMeta, {marginTop: 0, marginLeft: 10}]}>
                     {pt.gender}  {pt.birthDate ? '\u00B7  ' + pt.birthDate.substring(0, 4) : ''}
                   </Text>
                 </View>
-                <View style={styles.patientActions}>
+                <View style={[styles.patientActions, {justifyContent: 'flex-start'}]}>
                   <TouchableOpacity
                     style={styles.patientActionBtn}
                     onPress={async () => {
@@ -2456,9 +2518,11 @@ SOAP:`;
               </TouchableOpacity>
             )}
             <View style={isUser ? styles.chatBubbleUser : styles.chatBubbleAI}>
-              <Text style={isUser ? styles.chatTextUser : styles.chatTextAI}>
-                {item.content}{isStreaming ? ' \u2588' : ''}
-              </Text>
+              {isUser ? (
+                <Text style={styles.chatTextUser}>{item.content}</Text>
+              ) : (
+                <>{renderMarkdown(item.content + (isStreaming ? ' \u2588' : ''), styles.chatTextAI)}</>
+              )}
             </View>
           </View>
         </View>
@@ -2551,9 +2615,7 @@ SOAP:`;
                       </Text>
                     </View>
                     {streamingReasoning ? (
-                      <Text style={{color: '#8a9a8a', fontSize: 12.5, lineHeight: 18}}>
-                        {streamingReasoning}
-                      </Text>
+                      <>{renderMarkdown(streamingReasoning, {color: '#8a9a8a', fontSize: 12.5, lineHeight: 18})}</>
                     ) : (
                       <Text style={{color: '#555', fontSize: 12, fontStyle: 'italic'}}>
                         Waiting for data...

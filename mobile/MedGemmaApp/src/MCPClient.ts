@@ -541,36 +541,20 @@ export async function ehrNavigateStream(
   patientId: string,
   onStep: (event: EHRStreamEvent) => void,
 ): Promise<EHRNavigateResult> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 180_000);
-  try {
-    const resp = await fetch(`${MCP_BASE}/tools/ehr_navigate_stream`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({question, patient_id: patientId}),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    if (!resp.ok) {
-      const text = await resp.text();
-      throw new Error(`EHR Navigator failed (${resp.status}): ${text}`);
-    }
+  // Try streaming via XMLHttpRequest (works in React Native unlike fetch ReadableStream)
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${MCP_BASE}/tools/ehr_navigate_stream`);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.timeout = 180_000;
 
-    const reader = resp.body?.getReader();
-    if (!reader) throw new Error('No response body');
-
-    const decoder = new TextDecoder();
-    let buffer = '';
+    let lastProcessed = 0;
     let finalResult: EHRNavigateResult | null = null;
 
-    while (true) {
-      const {done, value} = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, {stream: true});
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';  // Keep incomplete line in buffer
-
+    xhr.onprogress = () => {
+      const text = xhr.responseText.substring(lastProcessed);
+      lastProcessed = xhr.responseText.length;
+      const lines = text.split('\n');
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
@@ -584,28 +568,39 @@ export async function ehrNavigateStream(
           // Skip malformed lines
         }
       }
-    }
+    };
 
-    // Process any remaining buffer
-    if (buffer.trim()) {
-      try {
-        const event: EHRStreamEvent = JSON.parse(buffer.trim());
-        if (event.step === 'done' && event.data) {
-          finalResult = event.data;
-        }
-        onStep(event);
-      } catch {}
-    }
+    xhr.onload = () => {
+      if (xhr.status !== 200) {
+        reject(new Error(`EHR Navigator failed (${xhr.status}): ${xhr.responseText}`));
+        return;
+      }
+      // Process any remaining text
+      const text = xhr.responseText.substring(lastProcessed);
+      const lines = text.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        try {
+          const event: EHRStreamEvent = JSON.parse(trimmed);
+          if (event.step === 'done' && event.data) {
+            finalResult = event.data;
+          }
+          onStep(event);
+        } catch {}
+      }
+      if (finalResult) {
+        resolve(finalResult);
+      } else {
+        reject(new Error('No final result from EHR Navigator'));
+      }
+    };
 
-    if (!finalResult) throw new Error('No final result from EHR Navigator');
-    return finalResult;
-  } catch (err: any) {
-    clearTimeout(timeoutId);
-    if (err.name === 'AbortError') {
-      throw new Error('EHR Navigator timed out (>180s). Try again.');
-    }
-    throw err;
-  }
+    xhr.onerror = () => reject(new Error('Network error connecting to EHR Navigator'));
+    xhr.ontimeout = () => reject(new Error('EHR Navigator timed out (>180s). Try again.'));
+
+    xhr.send(JSON.stringify({question, patient_id: patientId}));
+  });
 }
 
 export {MCP_BASE};
