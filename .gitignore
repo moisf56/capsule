@@ -23,8 +23,10 @@ mobile/MedGemmaApp/android/
 mobile/MedGemmaApp/ios/
 mobile/MedGemmaApp/.bundle/
 
-# ML models (too large for git)
-ml-models/
+# ML model binaries (too large for git)
+ml-models/gguf/
+ml-models/onnx/
+ml-models/llama.cpp/
 *.gguf
 *.onnx
 *.bin
