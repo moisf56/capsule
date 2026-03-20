@@ -3,12 +3,11 @@ Capsule — MedASR + MedGemma Demo
 Gradio Space: moisf56/capsule-medasr-demo
 
 Pipeline:
-  Audio → Resample 16kHz → Log Mel Spectrogram (LasrFeatureExtractor)
-        → Conformer CTC INT8 ONNX → Greedy Decode → Medical Text Formatting
+  Audio → LasrFeatureExtractor → google/medasr (Conformer CTC)
+        → Manual CTC greedy decode → Medical Text Formatting
         → (optional) MedGemma 4B Q3_K_M → SOAP Note
 """
 
-import json
 import re
 import threading
 
@@ -17,30 +16,28 @@ import librosa
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import onnxruntime as ort
 import scipy.signal
+import torch
+import transformers
 from huggingface_hub import hf_hub_download
 
 matplotlib.use("Agg")
 
-# ── MedASR: model & vocab ─────────────────────────────────────────────────────
+# ── MedASR: direct model inference (pipeline CTC collapse is broken for Lasr) ─
 
-print("Loading MedASR (INT8 ONNX)...")
-_asr_model  = hf_hub_download("moisf56/medasr-conformer-ctc-int8-onnx", "medasr_int8.onnx")
-_vocab_file = hf_hub_download("moisf56/medasr-conformer-ctc-int8-onnx", "medasr_vocab.json")
-
-with open(_vocab_file) as f:
-    VOCAB: list[str] = json.load(f)
-
-ASR_SESSION = ort.InferenceSession(_asr_model, providers=["CPUExecutionProvider"])
-ASR_INPUT   = ASR_SESSION.get_inputs()[0].name
-ASR_OUTPUT  = ASR_SESSION.get_outputs()[0].name
-print(f"MedASR ready  ({ASR_INPUT} → {ASR_OUTPUT})")
+MODEL_ID = "google/medasr"
+print(f"Loading MedASR ({MODEL_ID})...")
+_fe    = transformers.LasrFeatureExtractor.from_pretrained(MODEL_ID)
+_model = transformers.AutoModelForCTC.from_pretrained(MODEL_ID)
+_tok   = transformers.AutoTokenizer.from_pretrained(MODEL_ID)
+_model.eval()
+print("MedASR ready.")
 
 # ── MedGemma: lazy load ───────────────────────────────────────────────────────
 
-_llm       = None
-_llm_lock  = threading.Lock()
+_llm      = None
+_llm_lock = threading.Lock()
+
 
 def get_llm():
     global _llm
@@ -66,68 +63,52 @@ def get_llm():
         print("MedGemma ready.")
         return _llm
 
-# ── Audio parameters (matching LasrFeatureExtractor exactly) ──────────────────
+
+# ── Audio parameters (mel visualisation) ─────────────────────────────────────
 
 SR         = 16_000
 N_FFT      = 512
 HOP_LENGTH = 160
 WIN_LENGTH = 400
 N_MELS     = 128
-N_FREQ     = N_FFT // 2 + 1   # 257
 
-# Symmetric Hann window — matches PyTorch hann_window(periodic=False)
 _HANN = scipy.signal.windows.hann(WIN_LENGTH, sym=True).astype(np.float64)
-
-# Mel filterbank (same parameters as LasrFeatureExtractor)
 _MEL_FILTERS = librosa.filters.mel(
     sr=SR, n_fft=N_FFT, n_mels=N_MELS, fmin=0.0, fmax=SR / 2
-).astype(np.float64)   # (128, 257)
+).astype(np.float64)
 
-# ── DSP ───────────────────────────────────────────────────────────────────────
 
 def compute_mel(audio: np.ndarray) -> np.ndarray:
-    """
-    Log mel spectrogram matching LasrFeatureExtractor._torch_extract_fbank_features.
-      1. Frame with WIN_LENGTH / HOP_LENGTH
-      2. Symmetric Hann window (periodic=False)
-      3. Real FFT (N_FFT=512) → power spectrum
-      4. Mel filterbank → log(clamp(·, 1e-5))
-    Returns (N_MELS, T) float32.
-    """
     n_frames = (len(audio) - WIN_LENGTH) // HOP_LENGTH + 1
     mel_spec = np.empty((N_MELS, n_frames), dtype=np.float32)
-
     for i in range(n_frames):
-        frame = audio[i * HOP_LENGTH : i * HOP_LENGTH + WIN_LENGTH].astype(np.float64)
+        frame    = audio[i * HOP_LENGTH : i * HOP_LENGTH + WIN_LENGTH].astype(np.float64)
         windowed = frame * _HANN
-        padded = np.zeros(N_FFT, dtype=np.float64)
+        padded   = np.zeros(N_FFT, dtype=np.float64)
         padded[:WIN_LENGTH] = windowed
-
         fft   = np.fft.rfft(padded)
-        power = fft.real ** 2 + fft.imag ** 2     # (257,)
-        mel   = _MEL_FILTERS @ power               # (128,)
+        power = fft.real ** 2 + fft.imag ** 2
+        mel   = _MEL_FILTERS @ power
         mel_spec[:, i] = np.log(np.maximum(mel, 1e-5)).astype(np.float32)
+    return mel_spec
 
-    return mel_spec   # (128, T)
+
+# ── CTC decode ────────────────────────────────────────────────────────────────
+
+def ctc_greedy_decode(logits_tensor: torch.Tensor) -> str:
+    """Argmax → collapse consecutive duplicates → remove blank (token 0) → decode."""
+    ids = logits_tensor.argmax(dim=-1).tolist()   # (T,)
+    collapsed, prev = [], -1
+    for id_ in ids:
+        if id_ != 0 and id_ != prev:
+            collapsed.append(id_)
+        prev = id_
+    return _tok.decode(collapsed) if collapsed else ""
 
 
-# ── CTC decoder ───────────────────────────────────────────────────────────────
-
-def ctc_greedy_decode(logits: np.ndarray) -> tuple[list[str], str]:
-    """Greedy CTC: argmax → collapse duplicates → remove blank (token 0)."""
-    tokens: list[str] = []
-    prev_id = -1
-    for t in range(logits.shape[0]):
-        max_id = int(np.argmax(logits[t]))
-        if max_id != 0 and max_id != prev_id:
-            if max_id < len(VOCAB):
-                tokens.append(VOCAB[max_id])
-        prev_id = max_id
-    return tokens, "".join(tokens)
-
+# ── Text formatting ───────────────────────────────────────────────────────────
 
 def format_transcription(text: str) -> str:
-    """Convert MedASR special tokens → punctuation / section headers."""
     text = re.sub(r"\[([A-Z\s]+)\]", lambda m: m.group(1).title(), text)
     for tok in ["</s>", "<s>", "<epsilon>", "<pad>"]:
         text = text.replace(tok, "")
@@ -149,7 +130,6 @@ def plot_mel(mel: np.ndarray, duration_s: float) -> plt.Figure:
     fig, ax = plt.subplots(figsize=(12, 3))
     fig.patch.set_facecolor("#0f172a")
     ax.set_facecolor("#0f172a")
-
     img = ax.imshow(
         mel, aspect="auto", origin="lower", cmap="magma",
         extent=[0, duration_s, 0, SR / 2 / 1000],
@@ -191,46 +171,34 @@ SOAP_PROMPT_TEMPLATE = (
 )
 
 
-# ── Inference functions ───────────────────────────────────────────────────────
+# ── Inference ─────────────────────────────────────────────────────────────────
 
-def transcribe(audio):
-    """MedASR: audio → mel spectrogram + CTC transcript."""
-    if audio is None:
-        return None, "", "", ""
+def transcribe(audio_path):
+    if audio_path is None:
+        return None, "", ""
 
-    sr, raw = audio
-    if raw.ndim > 1:
-        raw = raw.mean(axis=1)
-    audio_f32 = raw.astype(np.float32)
-    if audio_f32.max() > 1.0:
-        audio_f32 /= 32768.0
+    audio_f32, _ = librosa.load(audio_path, sr=SR, mono=True)
+    duration_s   = len(audio_f32) / SR
+    mel          = compute_mel(audio_f32)
 
-    if sr != SR:
-        audio_f32 = librosa.resample(audio_f32, orig_sr=sr, target_sr=SR)
+    # LasrFeatureExtractor → model → manual CTC greedy decode
+    inputs  = _fe(audio_f32, sampling_rate=SR, return_tensors="pt")
+    with torch.no_grad():
+        logits = _model(**inputs).logits[0]   # (T, vocab)
 
-    duration_s = len(audio_f32) / SR
-    mel = compute_mel(audio_f32)
-
-    model_in = mel.T[np.newaxis].astype(np.float32)   # (1, T, 128)
-    logits   = ASR_SESSION.run([ASR_OUTPUT], {ASR_INPUT: model_in})[0][0]  # (T', 512)
-
-    raw_tokens, raw_text = ctc_greedy_decode(logits)
+    raw_text  = ctc_greedy_decode(logits)
     formatted = format_transcription(raw_text)
 
-    MAX = 80
-    token_display = "  ".join(raw_tokens[:MAX])
-    if len(raw_tokens) > MAX:
-        token_display += f"  … (+{len(raw_tokens) - MAX} more)"
+    print(f"[ASR] raw:       {raw_text[:200]}")
+    print(f"[ASR] formatted: {formatted[:200]}")
 
-    return plot_mel(mel, duration_s), token_display, raw_text, formatted
+    return plot_mel(mel, duration_s), formatted, raw_text
 
 
 def generate_soap(transcript: str):
-    """MedGemma: transcript → SOAP note (loads model on first call)."""
     transcript = transcript.strip()
     if not transcript:
         return "⚠️ Transcribe audio first, then click Generate SOAP Note."
-
     try:
         llm = get_llm()
     except Exception as e:
@@ -255,14 +223,14 @@ def generate_soap(transcript: str):
 DESCRIPTION = """
 ## 🎙️ Capsule — MedASR + MedGemma On-Device Pipeline
 
-**MedASR:** 105M Conformer CTC · INT8 ONNX · **101 MB** (↓75% from 402 MB)
-**MedGemma:** 4B multimodal · GGUF Q3\_K\_M · **2.0 GB** (↓73% from 7.3 GB)
+**MedASR:** 105M Conformer CTC · `google/medasr` · ~5% WER on medical speech
+**MedGemma:** 4B multimodal · GGUF Q3_K_M · **2.0 GB** (↓73% from 7.3 GB)
 
 Dictate a clinical encounter → get a transcript → generate a structured SOAP note.
 This is the exact pipeline running inside **[Capsule](https://github.com/mo-saif/capsule)**,
 tested on a $150 Android phone (Tecno Spark 40 · 8 GB RAM · CPU only — no GPU anywhere).
 
-> **Note:** SOAP generation loads MedGemma (2 GB) on first click — may take ~60 s on the first request.
+> **Note:** SOAP generation loads MedGemma (2 GB) on first click — may take ~60 s.
 
 *Part of the [MedGemma Impact Challenge](https://www.kaggle.com/competitions/medgemma-impact-challenge) ·
 Models: [MedASR](https://huggingface.co/moisf56/medasr-conformer-ctc-int8-onnx) · [MedGemma GGUF](https://huggingface.co/moisf56/medgemma-4b-q3km-gguf)*
@@ -271,57 +239,59 @@ Models: [MedASR](https://huggingface.co/moisf56/medasr-conformer-ctc-int8-onnx) 
 with gr.Blocks(theme=gr.themes.Soft(), title="Capsule — MedASR + MedGemma") as demo:
     gr.Markdown(DESCRIPTION)
 
-    # ── Step 1: Transcription ──
-    gr.Markdown("### Step 1 — Transcribe")
+    gr.Markdown("### Step 1 — Record or upload audio")
     with gr.Row():
         with gr.Column(scale=1):
             audio_input = gr.Audio(
-                label="Record or upload clinical audio",
+                label="Clinical audio (any sample rate · mono or stereo)",
                 sources=["microphone", "upload"],
+                type="filepath",
             )
-            transcribe_btn = gr.Button("Transcribe with MedASR", variant="primary")
-
+            transcribe_btn = gr.Button("▶  Transcribe with MedASR", variant="primary")
         with gr.Column(scale=2):
             mel_plot = gr.Plot(label="Log Mel Spectrogram")
 
-    with gr.Row():
-        token_output = gr.Textbox(
-            label="CTC Token Stream  (raw model output — special tokens visible)",
-            lines=3,
-            show_copy_button=True,
-        )
-        raw_output = gr.Textbox(
-            label="Raw CTC Text",
-            lines=3,
-            show_copy_button=True,
-        )
-
+    gr.Markdown("### Step 2 — Review and edit transcript")
+    gr.Markdown("_MedASR output below. Correct any errors before generating the SOAP note._")
     formatted_output = gr.Textbox(
-        label="Formatted Transcription",
-        lines=4,
+        label="Transcript  ✏️ editable",
+        lines=5,
         show_copy_button=True,
+        interactive=True,
+        placeholder="Transcript will appear here after Step 1...",
     )
 
-    # ── Step 2: SOAP note ──
-    gr.Markdown("### Step 2 — Generate SOAP Note with MedGemma 4B")
-    soap_btn  = gr.Button("Generate SOAP Note", variant="secondary")
+    with gr.Accordion("Raw ASR output (before formatting)", open=False):
+        raw_output = gr.Textbox(
+            label="Raw MedASR text  (special tokens visible)",
+            lines=3,
+            show_copy_button=True,
+        )
+
+    gr.Markdown("### Step 3 — Generate SOAP Note with MedGemma 4B")
+    gr.Markdown(
+        "_Generates from the transcript above — edits you made in Step 2 are included._  "
+        "_First click loads MedGemma (2 GB) — expect ~60 s wait._"
+    )
+    soap_btn  = gr.Button("▶  Generate SOAP Note", variant="secondary")
     soap_note = gr.Textbox(
         label="SOAP Note  (MedGemma 4B Q3_K_M)",
         lines=14,
         show_copy_button=True,
-        placeholder="Click 'Generate SOAP Note' after transcribing...",
+        placeholder="SOAP note will appear here after Step 3...",
     )
 
-    # ── Wire up ──
     transcribe_btn.click(
         fn=transcribe,
-        inputs=audio_input,
-        outputs=[mel_plot, token_output, raw_output, formatted_output],
+        inputs=[audio_input],
+        outputs=[mel_plot, formatted_output, raw_output],
+        api_name=False,
     )
     soap_btn.click(
         fn=generate_soap,
         inputs=formatted_output,
         outputs=soap_note,
+        api_name=False,
     )
 
     gr.Markdown("""
@@ -329,12 +299,12 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Capsule — MedASR + MedGemma") as
 **Pipeline details**
 | Step | Detail |
 |------|--------|
-| Mel spectrogram | 512-pt FFT · 128 mel bins · symmetric Hann window · log(clamp(·, 1e-5)) — matches `LasrFeatureExtractor` |
-| CTC decode | Greedy argmax per frame · collapse duplicates · remove blank (token 0) · 512-token SentencePiece vocab |
+| Mel spectrogram | 512-pt FFT · 128 mel bins · symmetric Hann window · log(clamp(·, 1e-5)) |
+| ASR | `google/medasr` Conformer CTC · LasrFeatureExtractor · CTC greedy decode · ~5% WER |
 | Medical formatting | `{period}` → `.` · `{comma}` → `,` · `[EXAM TYPE]` → section headers |
-| SOAP generation | MedGemma 4B Q3\_K\_M · 768 max tokens · temp 0.3 · repeat penalty 1.1 |
-| Quantization | MedASR: ONNX INT8 dynamic (75% smaller) · MedGemma: llama.cpp Q3\_K\_M (73% smaller) |
+| SOAP generation | MedGemma 4B Q3_K_M · 768 max tokens · temp 0.3 · repeat penalty 1.1 |
+| On-device (mobile) | MedASR: ONNX INT8 (101 MB, ↓75%) · MedGemma: llama.cpp Q3_K_M (2.0 GB, ↓73%) |
 """)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(server_name="0.0.0.0", server_port=7860, show_api=False, ssr_mode=False)
