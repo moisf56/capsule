@@ -6,6 +6,7 @@
 
 ![MedGemma](https://img.shields.io/badge/MedGemma-4B-4285F4?style=flat-square&logo=google&logoColor=white)
 ![MedASR](https://img.shields.io/badge/MedASR-101MB-34A853?style=flat-square&logo=google&logoColor=white)
+![HuggingFace](https://img.shields.io/badge/MedGemma-HuggingFace-FFD21E?style=flat-square&logo=huggingface&logoColor=black)
 ![React Native](https://img.shields.io/badge/React_Native-0.83-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![Neo4j](https://img.shields.io/badge/Neo4j-5.x-008CC1?style=flat-square&logo=neo4j&logoColor=white)
@@ -41,7 +42,7 @@ Doctors spend 4.5 hours daily on documentation (Medical Economics, 2025). Capsul
 
 ### Key Innovation
 
-Unlike cloud-based AI scribes, Capsule enforces a strict **privacy boundary**: PHI never leaves the phone. The workstation knowledge graph receives only de-identified medical terms (drug names, diagnosis strings) — never patient names, dates, or identifiers.
+Tested running simultaneously with MedASR on a consumer Android device with 8GB RAM: no GPU, no cloud, no specialized hardware. Unlike cloud-based AI scribes, Capsule enforces a strict **privacy boundary**: PHI never leaves the phone. The workstation knowledge graph receives only de-identified medical terms (drug names, diagnosis strings) — never patient names, dates, or identifiers.
 
 ---
 
