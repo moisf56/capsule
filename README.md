@@ -93,11 +93,11 @@ LangGraph-powered agent answers natural-language questions about the patient rec
 
 ## 📊 Models
 
-| Model | Size | Quantization | Runs on | Task |
-|-------|------|-------------|---------|------|
-| MedGemma 4B | 2.0 GB | GGUF Q3_K_M | Phone (on-device) | SOAP note generation · Lab results summary |
-| MedGemma 4B + mmproj | 2.4 GB | GGUF Q4_K_M | Laptop CPU | Enhancement · Radiology · EHR Navigation |
-| MedASR | 101 MB | ONNX INT8 | Phone (on-device) | Medical speech recognition |
+| Model | Size | Quantization | Runs on | Task | Download |
+|-------|------|-------------|---------|------|----------|
+| MedGemma 4B | 2.0 GB | GGUF Q3_K_M | Phone (on-device) | SOAP note generation · Lab results summary | [![HuggingFace](https://img.shields.io/badge/HF-moisf56%2Fmedgemma--4b--q3km--gguf-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://huggingface.co/moisf56/medgemma-4b-q3km-gguf) |
+| MedGemma 4B + mmproj | 2.4 GB | GGUF Q4_K_M | Laptop CPU | Enhancement · Radiology · EHR Navigation | [google/medgemma-1.5-4b-it](https://huggingface.co/google/medgemma-1.5-4b-it) |
+| MedASR | 101 MB | ONNX INT8 | Phone (on-device) | Medical speech recognition | [![HuggingFace](https://img.shields.io/badge/HF-moisf56%2Fmedasr--conformer--ctc--int8--onnx-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://huggingface.co/moisf56/medasr-conformer-ctc-int8-onnx) |
 
 **No GPU required anywhere.** Tested on Ryzen 7 8845HS (32GB RAM) running MedGemma Q4_K_M on CPU via llama.cpp — a standard doctor's laptop is sufficient.
 
@@ -158,10 +158,18 @@ cd workstation && docker-compose up -d && cd ..
 python -m venv venv && source venv/bin/activate
 pip install -r backend/requirements.txt
 
-# Place models (download from HuggingFace after accepting license):
-# ml-models/gguf/medgemma-1.5-4b-it-Q3_K_M.gguf   (phone inference)
-# ml-models/gguf/medgemma-1.5-4b-it-Q4_K_M.gguf   (workstation)
-# ml-models/gguf/medgemma-1.5-4b-it-mmproj.gguf    (vision)
+# Download quantized models from HuggingFace:
+# Phone inference (Q3_K_M, 2.0 GB):
+#   https://huggingface.co/moisf56/medgemma-4b-q3km-gguf
+# Workstation / vision (Q4_K_M + mmproj, requires license acceptance):
+#   https://huggingface.co/google/medgemma-1.5-4b-it
+# MedASR INT8 ONNX (101 MB):
+#   https://huggingface.co/moisf56/medasr-conformer-ctc-int8-onnx
+
+hf download moisf56/medgemma-4b-q3km-gguf medgemma-1.5-4b-it-Q3_K_M.gguf \
+    --local-dir ml-models/gguf
+hf download moisf56/medasr-conformer-ctc-int8-onnx medasr_int8.onnx medasr_vocab.json \
+    --local-dir ml-models/onnx
 
 # Launch MedGemma CPU server + MCP API
 bash workstation/start_vision.sh
