@@ -1,18 +1,21 @@
 ---
-title: Capsule — MedASR + MedGemma On-Device Pipeline
+title: Capsule — Medical Speech Recognition
 emoji: 🎙️
 colorFrom: green
 colorTo: blue
 sdk: gradio
-sdk_version: "5.33.0"
+sdk_version: "6.9.0"
 app_file: app.py
 pinned: true
 license: apache-2.0
+models:
+  - moisf56/medasr-conformer-ctc-int8-onnx
+  - moisf56/medgemma-4b-q3km-gguf
 ---
 
-# Capsule — MedASR + MedGemma On-Device Pipeline
+# Capsule — Medical Speech Recognition
 
-Interactive demo for the [Capsule](https://github.com/mo-saif/capsule) project —
+Interactive demo for the [Capsule](https://github.com/moisf56/capsule) project —
 submitted to the **MedGemma Impact Challenge (Edge AI Prize)**.
 
 **Models used:**

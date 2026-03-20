@@ -14,6 +14,7 @@
 
 [![Model on HF](https://huggingface.co/datasets/huggingface/badges/resolve/main/model-on-hf-md.svg)](https://huggingface.co/google/medgemma-1.5-4b-it)
 [![Model on HF](https://huggingface.co/datasets/huggingface/badges/resolve/main/model-on-hf-md.svg)](https://huggingface.co/google/medasr)
+[![Space on HF](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-md.svg)](https://huggingface.co/spaces/moisf56/capsule-medasr-demo)
 
 **MedGemma Impact Challenge — Edge AI Prize Submission**
 
