@@ -6,12 +6,14 @@
 
 ![MedGemma](https://img.shields.io/badge/MedGemma-4B-4285F4?style=flat-square&logo=google&logoColor=white)
 ![MedASR](https://img.shields.io/badge/MedASR-101MB-34A853?style=flat-square&logo=google&logoColor=white)
-[![Model on HF](https://huggingface.co/datasets/huggingface/badges/resolve/main/model-on-hf-sm.svg)](https://huggingface.co/google/medgemma-1.5-4b-it)
 ![React Native](https://img.shields.io/badge/React_Native-0.83-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![Neo4j](https://img.shields.io/badge/Neo4j-5.x-008CC1?style=flat-square&logo=neo4j&logoColor=white)
 ![FHIR](https://img.shields.io/badge/FHIR-R4-E74C3C?style=flat-square)
-![No GPU Required](https://img.shields.io/badge/No_GPU-Required-success?style=flat-square&logo=intel&logoColor=white)
+![No GPU](https://img.shields.io/badge/No_GPU-Required-22C55E?style=flat-square&logo=intel&logoColor=white)
+
+[![Model on HF](https://huggingface.co/datasets/huggingface/badges/resolve/main/model-on-hf-md.svg)](https://huggingface.co/google/medgemma-1.5-4b-it)
+[![Model on HF](https://huggingface.co/datasets/huggingface/badges/resolve/main/model-on-hf-md.svg)](https://huggingface.co/google/medasr)
 
 **MedGemma Impact Challenge — Edge AI Prize Submission**
 
