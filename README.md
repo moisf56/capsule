@@ -150,7 +150,7 @@ capsule/
 ### 1. Workstation Services
 
 ```bash
-git clone https://github.com/mo-saif/capsule && cd capsule
+git clone https://github.com/moisf56/capsule && cd capsule
 
 # Start Neo4j + HAPI FHIR
 cd workstation && docker-compose up -d && cd ..
@@ -211,9 +211,9 @@ npx react-native run-android
 
 ---
 
-##  Competition
+## Competition
 
-**MedGemma Impact Challenge — Edge AI Prize**
+**MedGemma Impact Challenge — Edge AI Prize Submission**
 
 | Criterion | Implementation |
 |-----------|---------------|
@@ -223,3 +223,9 @@ npx react-native run-android
 | FHIR integration | Full R4 bundle, 7 resource types |
 | Human-in-the-loop | 3 mandatory checkpoints before export |
 | Clinical impact | DDI detection, ICD-10 coding, lab correlation |
+
+---
+
+## License
+
+Code is Apache-2.0. The MedGemma and MedASR model weights are subject to Google's own terms.

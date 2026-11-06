@@ -99,7 +99,7 @@ transcript = " ".join(decoded)
 
 ### React Native / Android (onnxruntime-react-native)
 
-This is how the model is used inside [Capsule](https://github.com/mo-saif/capsule):
+This is how the model is used inside [Capsule](https://github.com/moisf56/capsule):
 
 ```typescript
 import { InferenceSession, Tensor } from 'onnxruntime-react-native';
@@ -111,7 +111,7 @@ const results = await session.run(feeds);
 const logits = results['output'].data as Float32Array;
 ```
 
-See [`CTCDecoder.ts`](https://github.com/mo-saif/capsule/blob/main/mobile/MedGemmaApp/src/CTCDecoder.ts) and [`MelSpectrogram.ts`](https://github.com/mo-saif/capsule/blob/main/mobile/MedGemmaApp/src/MelSpectrogram.ts) for the full reference implementation.
+See [`CTCDecoder.ts`](https://github.com/moisf56/capsule/blob/main/mobile/MedGemmaApp/src/CTCDecoder.ts) and [`MelSpectrogram.ts`](https://github.com/moisf56/capsule/blob/main/mobile/MedGemmaApp/src/MelSpectrogram.ts) for the full reference implementation.
 
 ---
 
@@ -155,6 +155,6 @@ If you use this model, please cite the original MedASR work and acknowledge the 
   title  = {Capsule: Edge AI Clinical Documentation with Agentic Intelligence},
   author = {Mohammed K. A. Abed},
   year   = {2026},
-  url    = {https://github.com/mo-saif/capsule}
+  url    = {https://github.com/moisf56/capsule}
 }
 ```

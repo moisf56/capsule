@@ -21,7 +21,7 @@ from huggingface_hub import HfApi, create_repo
 HF_USERNAME = "moisf56"
 
 _HF_MODELS_DIR = Path(__file__).parent / "hf-models"
-_ML_MODELS_DIR = Path("/home/mo-saif/Documents/medgemma hackathon/ml-models")
+_ML_MODELS_DIR = Path(__file__).resolve().parent
 _VOCAB_FILE    = Path(__file__).parent.parent / "mobile/MedGemmaApp/src/medasr_vocab.json"
 
 MODELS = [
