@@ -1,7 +1,7 @@
 # MedGemma Clinical Assistant — System Summary
 
 **Project**: Edge AI Medical Documentation System
-**Competition**: MedGemma Impact Challenge — Edge AI Prize
+**Competition**: MedGemma Impact Challenge — Edge AI Prize Submission
 **Device Tested**: Tecno Spark 40 (8GB RAM, Android 15, arm64-v8a)
 **Current Milestone**: M4 — Performance optimization + EHR Navigator Agent
 

@@ -112,7 +112,7 @@ print(output["choices"][0]["text"])
 
 ### React Native / Android (llama.rn)
 
-This is how the model is used inside [Capsule](https://github.com/mo-saif/capsule):
+This is how the model is used inside [Capsule](https://github.com/moisf56/capsule):
 
 ```typescript
 import { initLlama, LlamaContext } from 'llama.rn';
@@ -132,7 +132,7 @@ const result = await context.completion({
 });
 ```
 
-See [`App.tsx`](https://github.com/mo-saif/capsule/blob/main/mobile/MedGemmaApp/App.tsx) for the full reference implementation including memory management (sequential loading with MedASR).
+See [`App.tsx`](https://github.com/moisf56/capsule/blob/main/mobile/MedGemmaApp/App.tsx) for the full reference implementation including memory management (sequential loading with MedASR).
 
 ---
 
@@ -211,6 +211,6 @@ If you use this model, please cite the original MedGemma work and acknowledge th
   title  = {Capsule: Edge AI Clinical Documentation with Agentic Intelligence},
   author = {Mohammed K. A. Abed},
   year   = {2026},
-  url    = {https://github.com/mo-saif/capsule}
+  url    = {https://github.com/moisf56/capsule}
 }
 ```
